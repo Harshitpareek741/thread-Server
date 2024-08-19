@@ -1,71 +1,82 @@
 import axios from 'axios'
 import prisma from '../clientdb';
-import {createJWTToken} from '../services/service';
-
-interface GoogleTokenResponse {
-    iss: string; // Issuer
-    azp: string; // Authorized party
-    aud: string; // Audience
-    sub: string; // Subject
-    email: string; // Email
-    email_verified: string; // Email verified (should be boolean, but it's a string in your data)
-    nbf: string; // Not before
-    name: string; // Full name
-    picture: string; // Profile picture URL
-    given_name: string; // Given name
-    family_name: string; // Family name
-    iat: string; // Issued at
-    exp: string; // Expiration time
-    jti: string; // JWT ID
-    alg: string; // Algorithm
-    kid: string; // Key ID
-    typ: string; // Type
-  }
+import { createJWTToken } from '../services/service';
 import { GraphQlserver } from '../type/type';
 import { Console, log } from 'console';
 import { User } from '@prisma/client';
+import UserService from '../services/user';
 
 
-  const  Query = {
-        GoogleAuthentication: async (parent: any, args: { token: string }) => {
-          const {token} = args;
-          const {data} = await axios.get<GoogleTokenResponse>(`https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=${token}`);
-          const user = await prisma.user.findUnique({where: {email: data.email}});
-    
-          if(!user){
-             await prisma.user.create({
-                data: {
-                    firstName : data.given_name,
-                    lastName : data.family_name,
-                    email : data.email,
-                    profilePhotoUrl : data.picture
-                },
-             });
-          }
-          
-          const acuser = await prisma.user.findUnique({where:{email : data.email}});
-          if(!acuser){throw new  Error("user not made");}
-          const newtoken =  createJWTToken(acuser);
-           
-          return newtoken;  
-        },
-        GetUserFromContext: async (parent: any , args : any , ctx: GraphQlserver) => {
-            const ids = ctx.user?.id ; 
-            const datas  = await prisma.user.findUnique({where : {id : ids}});
-            return datas;
-        }
+interface payload {
+  id: string;
+  firstName: string;
+  lastName: string;
+  bio: string;
+  location: string;
+  website: string;
+}
 
-    };
-    
-    
-    
+const Query = {
+  GoogleAuthentication: async (parent: any, { token }: { token: string }) => {
+    return await UserService.createUserFromToken(token);
+  },
+  GetUserFromContext: async (parent: any, args: any, ctx: GraphQlserver) => {
+    const ids = ctx.user?.id;
+    const datas = await prisma.user.findUnique({ where: { id: ids } });
+    return datas;
+  },
+  GetUserFromId: async (parent: any, { id }: { id: string }, ctx: GraphQlserver) =>
+    prisma.user.findUnique({ where: { id } })
+
+};
+
+const Mutation = {
+  updateUser: async (parent: any, { payload }: { payload: payload }, ctx: GraphQlserver) => {
+    const Userdata = await UserService.updateUser(payload);
+    return Userdata;
+  },
+  followUser : async (parent : any , {From , To} : {From : string , To : string} , ctx : GraphQlserver) => {
+     if(!ctx.user)return new Error("User Not auth");
+     const follow = await UserService.followUser(From , To);
+     return follow ; 
+  },
+  unfollowUser : async (parent : any , {From , To} : {From : string , To : string} , ctx : GraphQlserver) => {
+    if(!ctx.user)return new Error("User Not auth");
+    const uf = await UserService.unfollowUser(From , To);
+    return uf ; 
+ }
+}
+
 
 const Extraresolver = {
-    User: {
-     tweets: (parent : User) => {
-         return prisma.tweet.findMany({where : {authorId : parent.id}});
-     },
+  User: {
+    tweets: (parent: User) => {
+      return prisma.tweet.findMany({ where: { authorId: parent.id } });
     },
- }
+    createdAt: (parent: User) => parent.createdAt.toISOString(),
+    updatedAt: (parent: User) => parent.updatedAt.toISOString(),
+    followers: async (parent: User) => {
+      const follows = await prisma.follows.findMany({
+        where: { followingId: parent.id }
+      });
+      const followerPromises = follows.map((follow) =>
+        prisma.user.findUnique({ where: { id: follow.followerId } })
+      );
+      return Promise.all(followerPromises);
+    },
+    following: async (parent: User) => {
+      const follows = await prisma.follows.findMany({
+        where: { followerId: parent.id }
+      });
+      const followingPromises = follows.map((follow) =>
+        prisma.user.findUnique({ where: { id: follow.followingId } })
+      );
+      return Promise.all(followingPromises);
+    },
+  },
+}
 
-export const resolvers =  {Query,Extraresolver};
+export { Extraresolver };
+
+
+export const resolvers = { Query, Extraresolver, Mutation };

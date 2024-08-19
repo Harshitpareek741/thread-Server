@@ -16,6 +16,7 @@ const typeDefs = `
   }
   type Mutation {
    ${Tweet.typeMutation}
+   ${User.typemutation}
   }
 `;
 
@@ -26,6 +27,7 @@ const resolvers = {
     },
     Mutation: {
       ...Tweet.resolvers.Mutation,
+      ...User.resolvers.Mutation
     },
     ...Tweet.resolvers.Extraresolver,
     ...User.resolvers.Extraresolver

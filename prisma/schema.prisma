@@ -12,23 +12,43 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
 model User {
-  id              String   @id @default(cuid())
+  id              String    @id @default(cuid())
   firstName       String
   lastName        String?
-  email           String   @unique
+  email           String    @unique
   profilePhotoUrl String?
   Tweets          Tweet[]
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  followers       Follows[] @relation("follower")
+  following       Follows[] @relation("following")
 }
 
 model Tweet {
-  id        String   @id @default(cuid())
-  content   String
-  authorId  String
-  author    User     @relation(fields: [authorId], references: [id])
+  id            String  @id @default(cuid())
+  content       String
+  authorId      String
+  author        User    @relation(fields: [authorId], references: [id])
+  imageUrl      String
+  likes         Int     @default(0)
+  comments      Tweet[] @relation("CommentRelation")
+  parentTweet   Tweet?  @relation("CommentRelation", fields: [parentTweetId], references: [id])
+  parentTweetId String?
+
+  views     Int      @default(0)
+  retweet   Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
+model Follows {
+  follower   User   @relation("follower", fields: [followerId], references: [id])
+  followerId String
+
+  following   User   @relation("following", fields: [followingId], references: [id])
+  followingId String
+
+  @@id([followerId, followingId])
+}

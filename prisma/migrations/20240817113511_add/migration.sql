@@ -1,0 +1,8 @@
+-- AlterTable
+ALTER TABLE "Tweet" ADD COLUMN     "likes" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "parentTweetId" TEXT,
+ADD COLUMN     "retweet" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "views" INTEGER NOT NULL DEFAULT 0;
+
+-- AddForeignKey
+ALTER TABLE "Tweet" ADD CONSTRAINT "Tweet_parentTweetId_fkey" FOREIGN KEY ("parentTweetId") REFERENCES "Tweet"("id") ON DELETE SET NULL ON UPDATE CASCADE;
