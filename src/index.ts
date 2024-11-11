@@ -1,6 +1,6 @@
 import initStart from './app'
 import main from './clientdb';
-const Port = 8000 || process.env.port;
+const Port = 8080 || process.env.port;
 
 async function ServerStart(){
     const app = await initStart();
