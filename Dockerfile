@@ -10,10 +10,14 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
-# Copy source files
+# Copy the Prisma schema and generate Prisma Client
+COPY prisma ./prisma
+RUN npx prisma generate
+
+# Copy the rest of the application files
 COPY . .
 
-# Compile TypeScript files
+# Compile TypeScript files (if needed)
 RUN npx tsc
 
 # Expose the port
