@@ -1,7 +1,7 @@
-# Use Node.js image
+# Use the official Node.js image
 FROM node:18
 
-# Set working directory
+# Set working directory in container
 WORKDIR /app
 
 # Copy package.json and package-lock.json
@@ -10,18 +10,14 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
-# Copy the Prisma schema and generate Prisma Client
-COPY prisma ./prisma
-RUN npx prisma generate
-
-# Copy the rest of the application files
+# Copy the rest of the application
 COPY . .
 
-# Compile TypeScript files (if needed)
-RUN npx tsc
+# Build TypeScript files to the dist folder
+RUN npm run build
 
 # Expose the port
 EXPOSE 8080
 
-# Start the server
-CMD ["node", "start"]
+# Start the app from the compiled JavaScript files in the dist folder
+CMD ["node", "dist/src/index.js"]
