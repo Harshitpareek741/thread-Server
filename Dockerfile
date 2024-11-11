@@ -24,4 +24,4 @@ RUN npx tsc
 EXPOSE 8080
 
 # Start the server
-CMD ["node", "dist/src/index.js"]
+CMD ["node", "dist/src/index.ts"]
