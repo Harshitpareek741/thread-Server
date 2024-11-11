@@ -21,7 +21,7 @@ COPY . .
 RUN npx tsc
 
 # Expose the port
-EXPOSE 8080
+EXPOSE 8000
 
 # Start the server
 CMD ["node", "dist/src/index.js"]
