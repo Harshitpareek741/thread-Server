@@ -42,6 +42,7 @@ async function initStart(): Promise<express.Express> {
   });
 
   await server.start();
+  app.use(cors());
   app.get("/",(req,res)=> 
   res.status(200).json({message : "Everything is good"}))
   
