@@ -27,7 +27,12 @@ const Query = {
   },
   GetUserFromId: async (parent: any, { id }: { id: string }, ctx: GraphQlserver) =>
     prisma.user.findUnique({ where: { id } })
-
+  ,
+  GetAllUsers: async (parent: any, args: any, ctx: GraphQlserver) => {
+    const ids = ctx.user?.id;
+    const datas = await prisma.user.findMany({});
+    return datas;
+  }
 };
 
 const Mutation = {

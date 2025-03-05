@@ -7,13 +7,11 @@ import prisma from "../clientdb";
 const AWS_ACCESS_KEY_ID=process.env.S3_ACCESS;
 const AWS_SECRET_ACCESS_KEY=process.env.SECRET;
 const BUCKET_NAME = process.env.BUCKET_NAME;
+
 interface TweetPayload {
     content : string,
     imageUrl : string
 }
-
-
-
 
 class Tweet {
     public static async getPresignedurl(imageName: string , imagetype: string,ids: string){
