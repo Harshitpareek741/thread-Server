@@ -1,6 +1,6 @@
 import initStart from './app'
 import main from './clientdb';
-const Port = process.env.port;
+const Port = 8080 || process.env.port;
 import cors from 'cors';
 
 async function ServerStart(){
